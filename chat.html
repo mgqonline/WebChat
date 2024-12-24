@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>websocket聊天室</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        #chat {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            padding: 10px;
+            max-width: 600px;
+            margin: auto;
+            height: 400px;
+            overflow-y: auto;
+        }
+        #messages {
+            width: calc(100% - 100px);
+            padding: 10px;
+            margin-right: 10px;
+        }
+        #input-section {
+            margin-top: 10px;
+        }
+        span {
+            background-color: pink;
+        }
+        button {
+            padding: 10px;
+        }
+        #message {
+            width: calc(100% - 100px);
+            padding: 10px;
+            margin-right: 10px;
+        }
+        .message {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat">
+        <div id="messages"></div>
+        <div id="input-section">
+            <!-- <input type="text" id="username" placeholder="请输入用户名" /> -->
+            <input type="text" id="message" placeholder="输入消息..." />
+            <button onclick="sendMessage(null)">发送</button>
+    </div>
+    <script>
+        let ws;
+        function generateRandomUsername() {
+            const adjectives = ['Quick', 'Lazy', 'Sleepy', 'Happy', 'Silly', 'Clever', 'Brave', 'Witty', 'Charming', 'Fierce'];
+            const nouns = ['Tiger', 'Lion', 'Bear', 'Eagle', 'Shark', 'Dragon', 'Phoenix', 'Wolf', 'Panda', 'Fox'];
+
+            // 随机选择一个形容词和一个名词
+            const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+
+            // 生成随机数字
+            const randomNumber = Math.floor(Math.random() * 1000); // 生成 0 到 999 的随机数
+
+            // 组合成用户名
+            const username = `${randomAdjective}${randomNoun}${randomNumber}`;
+            return username;
+        }
+        let username;
+        function connect(){
+            const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+            // console.log("websocket地址",window.location)
+            ws = new WebSocket(`${protocol}://localhost:3010`);
+            ws.onopen = ()=>{
+                console.log("连接websocket服务器成功");
+                username = generateRandomUsername();
+                sendMessage({type:"JOIN",username})
+            };
+
+            ws.onmessage =(event)=>{
+                const data = JSON.parse(event.data);
+                const messageDiv = document.getElementById("messages");
+                const messageElement = document.createElement("div");
+                messageElement.className = 'message';
+                messageElement.innerHTML = `<span><strong>[${data.username}]</strong></span>: ${data.text}`;
+                messageDiv.appendChild(messageElement);
+                messageDiv.scrollTop = messageDiv.scrollHeight;
+            };
+            
+            ws.onclose = ()=>{
+                console.log("websocket服务器关闭");
+            };
+        }
+        let sendMessage = function(data) {
+            if(!ws || ws.readyState !== WebSocket.OPEN) return ;
+            const messageInput = document.getElementById("message");
+            const messageText = messageInput.value.trim();
+
+            if(messageText === "") return ;
+
+            // const username = generateRandomUsername();
+
+            if(!data){
+                data = {
+                    type: "MESSAGE",
+                    username: username,
+                    text: messageText
+                }
+            }
+            console.log("发送消息",data);
+            ws.send(JSON.stringify(data));
+            messageInput.value = "";
+        };
+        window.onload = connect;
+    </script>
+</body>
+</html>
