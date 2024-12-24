@@ -13,10 +13,8 @@ node server.js
 ```
 
 ## 在WebChat目录下运行访问chat.html页面
-##运行如下命令在本地启动一个http服务器[python安装](https://blog.csdn.net/qq_34514415/article/details/80201543)
+## 运行如下命令在本地启动一个http服务器,[python安装](https://blog.csdn.net/qq_34514415/article/details/80201543)
 ```
-
-
 python -m http.server 3000
 
 http://localhost:3000/chat.html
